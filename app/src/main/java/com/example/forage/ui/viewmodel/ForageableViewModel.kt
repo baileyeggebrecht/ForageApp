@@ -20,6 +20,7 @@ import com.example.forage.data.ForageableDao
 import com.example.forage.model.Forageable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.IllegalArgumentException
 
 /**
  * Shared [ViewModel] to provide data to the [ForageableListFragment], [ForageableDetailFragment],
@@ -37,7 +38,7 @@ class ForageableViewModel(
 
     //  create method that takes id: Long as a parameter and retrieve a Forageable from the
     //  database by id via the DAO.
-    fun retrieveForageable(id: Long): LiveData<Foragable> {
+    fun retrieveForageable(id: Long): LiveData<Forageable> {
         return forageableDao.getForageable(id).asLiveData()
     }
 
@@ -76,7 +77,8 @@ class ForageableViewModel(
             notes = notes
         )
         viewModelScope.launch(Dispatchers.IO) {
-            // TODO: call the DAO method to update a forageable to the database here
+            //  call the DAO method to update a forageable to the database here
+            forageableDao.update(forageable)
         }
     }
 
@@ -95,4 +97,13 @@ class ForageableViewModel(
 //  create a view model factory that takes a ForageableDao as a property and
 //  creates a ForageableViewModel
 class ForageableViewModelFactory(private val forageableDao: ForageableDao) :
+        ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(ForageableViewModel::class.java)) {
+                    @Suppress("UNCHECKED_CAST")
+                    return ForageableViewModel(forageableDao) as T
+                }
+                throw IllegalArgumentException("Unexpected class: $modelClass")
+            }
+        }
 
